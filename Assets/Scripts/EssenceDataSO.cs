@@ -4,10 +4,11 @@ using UnityEngine;
 public class EssenceDataSO : ScriptableObject
 {
     public string essenceName;
-    public Color essenceColor;          
-    public float intensity;             
-    public EssenceType essenceType;     
-    public Sprite icon;                 
+    public Color essenceColor;
+    public Color essenceSideColor;
+    public float intensity;
+    public EssenceType essenceType;
+    public Sprite icon;
 
     public enum EssenceType
     {

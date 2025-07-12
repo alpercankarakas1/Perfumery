@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   essenceName: "G\xFCl"
   essenceColor: {r: 1, g: 0, b: 0.86165476, a: 0}
+  essenceSideColor: {r: 1, g: 0.7216981, b: 0.97077924, a: 0}
   intensity: 0.7
   essenceType: 1
   icon: {fileID: 0}
