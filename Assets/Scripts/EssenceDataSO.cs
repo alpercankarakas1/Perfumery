@@ -4,8 +4,8 @@ using UnityEngine;
 public class EssenceDataSO : ScriptableObject
 {
     public string essenceName;
-    public Color essenceColor;
     public Color essenceSideColor;
+    public Color essenceTopColor;
     public float intensity;
     public EssenceType essenceType;
     public Sprite icon;

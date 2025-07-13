@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: ZambakEssenceData
   m_EditorClassIdentifier: 
   essenceName: Zambak
-  essenceColor: {r: 1, g: 0.96068025, b: 0, a: 0}
   essenceSideColor: {r: 1, g: 0.9472779, b: 0.43867922, a: 0}
+  essenceTopColor: {r: 1, g: 0.95775837, b: 0.6462264, a: 0}
   intensity: 0.6
   essenceType: 1
   icon: {fileID: 0}
