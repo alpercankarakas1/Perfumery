@@ -28,65 +28,99 @@ public class InteractionController : MonoBehaviour
     private Vector3 lastValidDropPos;
     private Vector3 lastValidDropNormal;
 
+    private float previewYOffset;
+
+    public Material highlightMaterial;
+    private Material[] originalMaterials;
+    private Renderer[] highlightedRenderers;
+    private IInteractable lastHighlighted;
+
+    public GameObject GetHeldObject()
+    {
+        return heldObject;
+    }
+
     void Update()
     {
         HandleRaycast();
-        HandleInteraction();
+
+        if (Input.GetKeyDown(interactKey))
+        {
+            if (currentInteractable != null && currentInteractable is Shaker)
+            {
+                HandleInteractionStart();
+            }
+            else
+            {
+                HandleInteraction();
+            }
+        }
+
+        if (Input.GetKeyUp(interactKey))
+        {
+            if (currentInteractable != null && currentInteractable is Shaker)
+            {
+                HandleInteractionEnd();
+            }
+        }
 
         if (heldObject != null)
             HandleDropPreview();
-
     }
 
 
     void HandleRaycast()
     {
-        if (heldObject != null)
-        {
-            currentInteractable = null;
-            interactTextUI.enabled = false;
-            return;
-        }
-
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange))
         {
-            currentInteractable = hit.collider.GetComponent<IInteractable>();
 
-            if (currentInteractable != null)
+            var interactable = hit.collider.GetComponent<IInteractable>();
+
+            // elde bir sey varsa sadece shaker nisan alinabilsin
+            if (heldObject != null && interactable is not Shaker)
             {
-                interactTextUI.text = currentInteractable.GetInteractText();
+                currentInteractable = null;
+                interactTextUI.enabled = false;
+                //ClearHighlight();
+                return;
+            }
+
+            currentInteractable = interactable;
+
+            if (interactable != null)
+            {
+                interactTextUI.text = interactable.GetInteractText();
                 interactTextUI.enabled = true;
+                //ApplyHighlight(interactable);
             }
             else
             {
                 interactTextUI.enabled = false;
+               // ClearHighlight();
             }
         }
         else
         {
             currentInteractable = null;
             interactTextUI.enabled = false;
+            //ClearHighlight();
         }
     }
-
 
     void HandleInteraction()
     {
         if (Input.GetKeyDown(interactKey))
         {
-            // Eğer elimizde nesne varsa, bırak
-            if (heldObject != null)
+            if (heldObject != null && currentInteractable == null)
             {
                 DropHeldObject();
                 return;
             }
 
-            // Elimiz boşsa, raycast ile bir şey arayalım
             Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
             if (Physics.Raycast(ray, out RaycastHit hit, interactRange))
             {
-                // Öncelik: IInteractable var mı?
                 var interactable = hit.collider.GetComponent<IInteractable>();
                 if (interactable != null)
                 {
@@ -94,7 +128,6 @@ public class InteractionController : MonoBehaviour
                 }
                 else
                 {
-                    // IInteractable yoksa, PickableObject var mı?
                     var pickable = hit.collider.GetComponent<PickableObject>();
                     if (pickable != null)
                     {
@@ -109,6 +142,8 @@ public class InteractionController : MonoBehaviour
     {
         if (heldObject == null || previewInstance == null) return;
 
+        previewInstance.SetActive(true);
+
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange, placeableMask))
         {
@@ -122,13 +157,13 @@ public class InteractionController : MonoBehaviour
             }
 
             // pos rot
-            previewInstance.SetActive(true);
-            previewInstance.transform.position = hit.point;
+            Vector3 dropPosition = hit.point + new Vector3(0, previewYOffset, 0);
+            previewInstance.transform.position = dropPosition;
             previewInstance.transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.normal);
 
             // overlap
             bool isOverlapping = Physics.CheckBox(
-                hit.point,
+                dropPosition,
                 previewBoundsSize / 2f,
                 previewInstance.transform.rotation,
                 overlapCheckMask
@@ -139,7 +174,7 @@ public class InteractionController : MonoBehaviour
                 foreach (var rend in previewRenderers)
                     rend.material = validMaterial;
 
-                lastValidDropPos = hit.point;
+                lastValidDropPos = dropPosition;
                 lastValidDropNormal = hit.normal;
                 isDropValid = true;
             }
@@ -154,6 +189,33 @@ public class InteractionController : MonoBehaviour
         {
             previewInstance.SetActive(false);
             isDropValid = false;
+        }
+    }
+
+        void HandleInteractionStart()
+    {
+        if (currentInteractable != null)
+        {
+            if (currentInteractable is Shaker shaker)
+            {
+                var essence = heldObject?.GetComponent<EssenceBottle>();
+                if (essence != null)
+                {
+                    shaker.StartPouring(essence);
+                }
+            }
+            else
+            {
+                currentInteractable.Interact();
+            }
+        }
+    }
+
+    void HandleInteractionEnd()
+    {
+        if (currentInteractable != null && currentInteractable is Shaker shaker)
+        {
+            shaker.StopPouring();
         }
     }
 
@@ -184,7 +246,6 @@ public class InteractionController : MonoBehaviour
         previewInstance = Instantiate(heldObject, Vector3.zero, Quaternion.identity);
         previewInstance.name = heldObject.name + "_Preview";
 
-        // comp sil
         var essence = previewInstance.GetComponent<EssenceBottle>();
         if (essence != null) DestroyImmediate(essence);
 
@@ -200,20 +261,28 @@ public class InteractionController : MonoBehaviour
         foreach (var rigid in previewInstance.GetComponentsInChildren<Rigidbody>())
             DestroyImmediate(rigid);
 
-        // bounds
-        Bounds totalBounds = new Bounds(previewInstance.transform.position, Vector3.zero);
-        foreach (var rend in previewInstance.GetComponentsInChildren<Renderer>())
-        {
-            totalBounds.Encapsulate(rend.bounds);
-        }
-        previewBoundsSize = totalBounds.size;
-
-        // materyal
         previewRenderers = previewInstance.GetComponentsInChildren<MeshRenderer>();
         foreach (var rend in previewRenderers)
             rend.material = invalidMaterial;
 
         previewInstance.SetActive(false);
+
+        // y offset
+        Bounds totalBounds = new Bounds(previewInstance.transform.position, Vector3.zero);
+        float minY = float.MaxValue;
+
+        foreach (var rend in previewInstance.GetComponentsInChildren<Renderer>())
+        {
+            totalBounds.Encapsulate(rend.bounds);
+            if (rend.bounds.min.y < minY)
+                minY = rend.bounds.min.y;
+        }
+
+        previewBoundsSize = totalBounds.size;
+
+        // Y offset = Preview'ın pivot ile en alt arasındaki fark
+        previewYOffset = previewInstance.transform.position.y - minY;
+
     }
 
     public void DropHeldObject()
@@ -222,7 +291,7 @@ public class InteractionController : MonoBehaviour
 
         // drop
         heldObject.transform.SetParent(null);
-        heldObject.transform.position = lastValidDropPos;
+        heldObject.transform.position = lastValidDropPos + new Vector3(0, previewYOffset, 0);
         heldObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, lastValidDropNormal);
 
         // col
@@ -247,4 +316,41 @@ public class InteractionController : MonoBehaviour
         isDropValid = false;
     }
 
+    void ApplyHighlight(IInteractable interactable)
+    {
+        if (interactable == lastHighlighted) return;
+
+        ClearHighlight();
+
+        var renderers = (interactable as MonoBehaviour).GetComponentsInChildren<Renderer>();
+        highlightedRenderers = renderers;
+
+        originalMaterials = new Material[renderers.Length];
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            originalMaterials[i] = renderers[i].material;
+            renderers[i].material = highlightMaterial;
+        }
+
+        lastHighlighted = interactable;
+    }
+
+    void ClearHighlight()
+    {
+        if (highlightedRenderers == null) return;
+
+        for (int i = 0; i < highlightedRenderers.Length; i++)
+        {
+            if (highlightedRenderers[i] != null && originalMaterials != null && i < originalMaterials.Length)
+            {
+                highlightedRenderers[i].material = originalMaterials[i];
+            }
+        }
+
+        highlightedRenderers = null;
+        originalMaterials = null;
+        lastHighlighted = null;
+    }
+
+    
 }

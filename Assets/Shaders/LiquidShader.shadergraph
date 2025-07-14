@@ -532,7 +532,7 @@
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "WobbleX",
     "m_DefaultReferenceName": "_WobbleX",
-    "m_OverrideReferenceName": "",
+    "m_OverrideReferenceName": "sil_WobbleX",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
@@ -669,7 +669,7 @@
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "WobbleZ",
     "m_DefaultReferenceName": "_WobbleZ",
-    "m_OverrideReferenceName": "",
+    "m_OverrideReferenceName": "sil_WobbleZ",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
@@ -1367,8 +1367,8 @@
     "m_ShaderOutputName": "OutMinMax",
     "m_StageCapability": 3,
     "m_Value": {
-        "x": -1.0,
-        "y": 1.0
+        "x": -0.6299999952316284,
+        "y": 0.6000000238418579
     },
     "m_DefaultValue": {
         "x": 0.0,
@@ -2561,7 +2561,7 @@
     "m_Title": "WOBBLE",
     "m_Position": {
         "x": -2624.0,
-        "y": -1175.0001220703125
+        "y": -1175.0
     }
 }
 

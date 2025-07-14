@@ -6,11 +6,17 @@ public class EssenceBottle : MonoBehaviour, IInteractable
     public EssenceDataSO data;
     public Renderer liquidRenderer;
 
-    void Start()
+    public float remainingAmount = 1f; 
+    public float pourSpeed = 0.2f;
+
+    public string GetInteractText()
     {
-        liquidRenderer.material.SetColor("_TopColor", data.essenceTopColor);
-        liquidRenderer.material.SetColor("_SideColor", data.essenceSideColor);
-        liquidRenderer.material.SetFloat("_FillAmount", Random.Range(0.5f,0.7f));
+        return "[E] Esans Al";
+    }
+
+    public EssenceDataSO GetEssence()
+    {
+        return data;
     }
 
     public void Interact()
@@ -19,13 +25,21 @@ public class EssenceBottle : MonoBehaviour, IInteractable
         interaction.PickUpObject(gameObject);
     }
 
-    public string GetInteractText()
+    void Start()
     {
-        return $"[E] {data.essenceName} Esans Al";
+        remainingAmount = Random.Range(0.5f, 0.7f);
+        UpdateLiquidColor();
+        UpdateFillAmount();
     }
 
-    public EssenceDataSO GetEssence()
+    public void UpdateFillAmount()
     {
-        return data;
+        liquidRenderer.material.SetFloat("_FillAmount", remainingAmount);
+    }
+
+    void UpdateLiquidColor()
+    {
+        liquidRenderer.material.SetColor("_TopColor", data.essenceSideColor);
+        liquidRenderer.material.SetColor("_SideColor", data.essenceSideColor);
     }
 }
