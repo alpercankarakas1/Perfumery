@@ -368,7 +368,6 @@ GameObject:
   - component: {fileID: 2322574801222432736}
   - component: {fileID: 7904744193249265050}
   - component: {fileID: 1531014437368113460}
-  - component: {fileID: 1351409270844126405}
   m_Layer: 0
   m_Name: Player 1
   m_TagString: Untagged
@@ -514,20 +513,3 @@ MonoBehaviour:
   lookSpeed: 2
   lookXLimit: 45
   canMove: 1
---- !u!114 &1351409270844126405
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8121833320062983629}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66df0341a2d22a344b0fdb86270f8647, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  interactRange: 3
-  interactKey: 101
-  playerCamera: {fileID: 7006915456483604648}
-  interactTextUI: {fileID: 0}
-  holdParent: {fileID: 0}

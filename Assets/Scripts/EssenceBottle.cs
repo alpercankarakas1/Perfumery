@@ -1,6 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(PickableObject))]
+[RequireComponent(typeof(Outline))]
 public class EssenceBottle : MonoBehaviour, IInteractable
 {
     public EssenceDataSO data;

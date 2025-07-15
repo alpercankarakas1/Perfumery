@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 2839188262164864591}
   - component: {fileID: 6285022493727325998}
   - component: {fileID: 438745668186239927}
-  - component: {fileID: 4811804704344079387}
   m_Layer: 0
   m_Name: Liquid
   m_TagString: Untagged
@@ -111,21 +110,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4811804704344079387
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 810188681411326535}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a683027640a78314b951dfea5efa0db2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MaxWobble: 0.03
-  WobbleSpeed: 1
-  Recovery: 1
 --- !u!1 &5756573933124350641
 GameObject:
   m_ObjectHideFlags: 0
@@ -141,6 +125,7 @@ GameObject:
   - component: {fileID: 4351183411420616583}
   - component: {fileID: 8845211637187768922}
   - component: {fileID: 1575056990099052837}
+  - component: {fileID: 2146017968751742856}
   m_Layer: 0
   m_Name: LiquidBottle
   m_TagString: Untagged
@@ -266,6 +251,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   data: {fileID: 11400000, guid: 0879883c2d1318e4ea331704f86c330e, type: 2}
   liquidRenderer: {fileID: 6285022493727325998}
+  remainingAmount: 1
+  pourSpeed: 0.2
 --- !u!54 &1575056990099052837
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -293,3 +280,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &2146017968751742856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5756573933124350641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  outlineWidth: 5
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
