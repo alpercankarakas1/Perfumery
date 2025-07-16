@@ -187,8 +187,20 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1531014437368113460, guid: 575e73b64d74d6b4e9873b72d5b58cbd, type: 3}
+      propertyPath: runSpeed
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1531014437368113460, guid: 575e73b64d74d6b4e9873b72d5b58cbd, type: 3}
+      propertyPath: jumpPower
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1531014437368113460, guid: 575e73b64d74d6b4e9873b72d5b58cbd, type: 3}
       propertyPath: lookSpeed
-      value: 0.44
+      value: 0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 1531014437368113460, guid: 575e73b64d74d6b4e9873b72d5b58cbd, type: 3}
+      propertyPath: walkSpeed
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1531014437368113460, guid: 575e73b64d74d6b4e9873b72d5b58cbd, type: 3}
       propertyPath: lookXLimit
