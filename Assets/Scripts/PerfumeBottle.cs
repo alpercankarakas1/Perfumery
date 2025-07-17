@@ -1,87 +1,80 @@
-using System.Collections.Generic;
+using System.Collections;
+using System.Data.Common;
 using UnityEngine;
 
 [RequireComponent(typeof(PickableObject))]
 [RequireComponent(typeof(Outline))]
 public class PerfumeBottle : MonoBehaviour, IInteractable
 {
-    public float totalCapacity = 100f; // mL
-    public float currentVolume = 0f;
+    public float capacity = 100f; // mL
+    public float currentAmount = 0f;
 
     public Renderer liquidRenderer;
-
-    // Hangi esanslardan ne kadar eklendi?
-    private Dictionary<EssenceDataSO, float> contents = new();
-
-    private bool isPouring = false;
+    
     private Coroutine pourRoutine;
 
-    private EssenceBottle essenceBottle;
-
-    public string GetInteractText() => "";
+    public string GetInteractText() => "[E] Parfum sise al";
 
     public void Interact()
     {
-        var controller = FindObjectOfType<InteractionController>();
-        var held = controller.GetHeldObject();
-        if (held == null) return;
+        var interaction = FindObjectOfType<InteractionController>();
+        interaction.PickUpObject(gameObject);
+    }
 
-        var essence = held.GetComponent<EssenceBottle>();
-        if (essence == null || essence.remainingAmount <= 0f) return;
+    public void StartPouring(EssenceBottle essence)
+    {
+        if (pourRoutine != null) return;
 
-        if (!isPouring)
-        {
-            pourRoutine = StartCoroutine(PourEssence(essence));
-            isPouring = true;
-        }
+        pourRoutine = StartCoroutine(PourFromEssence(essence));
     }
 
     public void StopPouring()
     {
-        isPouring = false;
-        if (pourRoutine != null) StopCoroutine(pourRoutine);
+        if (pourRoutine != null)
+        {
+            StopCoroutine(pourRoutine);
+            pourRoutine = null;
+        }
     }
 
-    private IEnumerator<WaitForEndOfFrame> PourEssence(EssenceBottle essence)
+    private IEnumerator PourFromEssence(EssenceBottle essence)
     {
-        while (isPouring && currentVolume < totalCapacity && essence.remainingAmount > 0f)
+        while (essence != null && !essence.IsEmpty && currentAmount < capacity)
         {
             float pourAmount = essence.pourSpeed * Time.deltaTime;
 
-            // Limit kontrolleri
-            pourAmount = Mathf.Min(pourAmount, totalCapacity - currentVolume);
-            pourAmount = Mathf.Min(pourAmount, essence.remainingAmount);
+            // limit kontrolleri
+            pourAmount = Mathf.Min(pourAmount, essence.currentAmount);
+            pourAmount = Mathf.Min(pourAmount, capacity - currentAmount);
 
-            // Ekle
-            currentVolume += pourAmount;
-            essence.remainingAmount -= pourAmount;
+            essence.currentAmount -= pourAmount;
+            currentAmount += pourAmount;
 
-            // Renk karışımı mantığı (basit): ilk renk varsa karışır
-            if (contents.ContainsKey(essence.data))
-                contents[essence.data] += pourAmount;
-            else
-                contents[essence.data] = pourAmount;
 
-            UpdateLiquidVisual();
-            yield return new WaitForEndOfFrame();
+            #region renk degisim test 
+
+            if (currentAmount >= 10f)
+            {
+                liquidRenderer.material.SetColor("_SideColor", essence.data.essenceSideColor);
+                liquidRenderer.material.SetColor("_TopColor", essence.data.essenceTopColor);
+            }
+
+            #endregion
+
+            Debug.Log($"→ Dökülüyor: {pourAmount:F2} mL | Parfüm Şişesi: {currentAmount:F1} / {capacity} mL | Esans Kaldı: {essence.currentAmount:F1} mL");
+
+            yield return null;
         }
 
-        isPouring = false;
+        StopPouring();
     }
 
-    void UpdateLiquidVisual()
+    void UpdateLiquidVisuals()
     {
-        if (liquidRenderer == null) return;
 
-        float fillRatio = currentVolume / totalCapacity;
+        //shader
 
-        foreach (var kvp in contents)
-        {
-            liquidRenderer.material.SetColor("_SideColor", kvp.Key.essenceSideColor);
-            liquidRenderer.material.SetColor("_TopColor", kvp.Key.essenceSideColor);
-            break;
-        }
-
-        liquidRenderer.material.SetFloat("_FillAmount", fillRatio);
+        //liquidRenderer.material.SetColor("_SideColor", color);
+        //liquidRenderer.material.SetColor("_TopColor", color);
     }
 }

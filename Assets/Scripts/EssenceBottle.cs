@@ -5,20 +5,31 @@ using UnityEngine;
 public class EssenceBottle : MonoBehaviour, IInteractable
 {
     public EssenceDataSO data;
+
+    public float currentAmount = 100f; // mL
+    public float capacity = 100f;
+    public float pourSpeed = 1f; // mL/sn
+
     public Renderer liquidRenderer;
 
-    public float remainingAmount = 1f; 
-    public float pourSpeed = 0.2f;
+    public bool IsEmpty => currentAmount <= 0f;
+
+    void Start()
+    {
+        UpdateLiquidVisual();
+    }
+
+    void Update()
+    {
+        // UpdateVisuals
+    }
 
     public string GetInteractText()
     {
-        return "[E] Esans Al";
+        return $"[E] {data.essenceName} Esansı Al | Doluluk : {currentAmount}/{capacity} mL";
     }
 
-    public EssenceDataSO GetEssence()
-    {
-        return data;
-    }
+    public EssenceDataSO GetEssence() => data;
 
     public void Interact()
     {
@@ -26,21 +37,15 @@ public class EssenceBottle : MonoBehaviour, IInteractable
         interaction.PickUpObject(gameObject);
     }
 
-    void Start()
+    void UpdateLiquidVisual()
     {
-        remainingAmount = Random.Range(0.5f, 0.7f);
-        UpdateLiquidColor();
-        UpdateFillAmount();
-    }
+        // sonradan fill amount eklenecek
 
-    public void UpdateFillAmount()
-    {
-        liquidRenderer.material.SetFloat("_FillAmount", remainingAmount);
-    }
 
-    void UpdateLiquidColor()
-    {
-        liquidRenderer.material.SetColor("_TopColor", data.essenceSideColor);
+        // ....
+
+
         liquidRenderer.material.SetColor("_SideColor", data.essenceSideColor);
+        liquidRenderer.material.SetColor("_TopColor",data.essenceSideColor);
     }
 }

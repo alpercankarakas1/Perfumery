@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class InteractionController : MonoBehaviour
 {
     public float interactRange = 3f;
-    
+
     public Camera playerCamera;
     public TextMeshProUGUI interactTextUI;
 
@@ -33,7 +33,7 @@ public class InteractionController : MonoBehaviour
 
     private float previewYOffset;
 
-    private Outline lastOutline;
+    private Outline currentOutline;
 
     private PlayerInputActions playerInputActions;
     private InputAction interactAction;
@@ -65,22 +65,27 @@ public class InteractionController : MonoBehaviour
         playerInputActions.Disable();
     }
 
-    void Update()
+    private void Update()
     {
         HandleRaycast();
-        if (heldObject != null)
+
+        if (heldObject != null) // elde item varsa
             HandleDropPreview();
+
+
+        if (Mouse.current.leftButton.wasReleasedThisFrame)
+        {
+            if (currentInteractable is PerfumeBottle perfume)
+                perfume.StopPouring();
+        }
     }
 
     private void OnInteractPerformed(InputAction.CallbackContext context)
     {
-        if (heldObject != null)
+        if (heldObject != null && isDropValid)
         {
-            if (isDropValid)
-            {
-                DropHeldObject();
-                return;
-            }
+            DropHeldObject();
+            return;
         }
 
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
@@ -92,28 +97,19 @@ public class InteractionController : MonoBehaviour
             {
                 interactable.Interact();
             }
-            else
-            {
-                var pickable = hit.collider.GetComponent<PickableObject>();
-                if (pickable != null && heldObject == null)
-                {
-                    PickUpObject(pickable.gameObject);
-                }
-            }
         }
     }
 
+
+
     private void OnPrimaryActionPerformed(InputAction.CallbackContext context)
     {
-        if (currentInteractable != null)
+        if (currentInteractable is PerfumeBottle perfume)
         {
-            if (currentInteractable is PerfumeBottle perfumeBottle)
+            var essence = heldObject?.GetComponent<EssenceBottle>();
+            if (essence != null)
             {
-                var essenceBottle = heldObject?.GetComponent<EssenceBottle>();
-                if (essenceBottle != null)
-                {
-                    perfumeBottle.Interact();
-                }
+                perfume.StartPouring(essence);
             }
         }
     }
@@ -124,42 +120,30 @@ public class InteractionController : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange))
         {
             var interactable = hit.collider.GetComponent<IInteractable>();
-
             currentInteractable = interactable;
 
-            if (interactable != null && heldObject == null)
+            if (interactable != null && heldObject == null) // interact edilecek nesneye bakiliyorsa ve el bossa
             {
                 interactTextUI.text = interactable.GetInteractText();
                 interactTextUI.enabled = true;
 
-                Outline outline = hit.collider.GetComponent<Outline>();
-                if (outline != null)
-                {
-                    if (outline != lastOutline)
-                    {
-                        DisableLastOutline();
-                        outline.enabled = true;
-                        lastOutline = outline;
-                    }
-                }
-                else
-                {
-                    DisableLastOutline();
-                }
+                HandleOutline(hit.collider);
             }
-            else
+            else // interact edilecek nesneye bakilmiyorsa
             {
                 interactTextUI.enabled = false;
-                DisableLastOutline();
+                HandleOutline(null);
             }
         }
-        else
+        else // raycast hit etmiyorsa 
         {
             currentInteractable = null;
             interactTextUI.enabled = false;
-            DisableLastOutline();
+            HandleOutline(null);
         }
     }
+
+
 
     public void PickUpObject(GameObject obj)
     {
@@ -181,11 +165,16 @@ public class InteractionController : MonoBehaviour
         heldObject.transform.localPosition = Vector3.zero;
         heldObject.transform.localRotation = Quaternion.identity;
 
+        // preview instance olustur
+
         previewInstance = Instantiate(heldObject, Vector3.zero, Quaternion.identity);
         previewInstance.name = heldObject.name + "_Preview";
 
         var essence = previewInstance.GetComponent<EssenceBottle>();
         if (essence != null) DestroyImmediate(essence);
+
+        var perfume = previewInstance.GetComponent<PerfumeBottle>();
+        if (perfume != null) DestroyImmediate(perfume);
 
         var pickable = previewInstance.GetComponent<PickableObject>();
         if (pickable != null) DestroyImmediate(pickable);
@@ -193,8 +182,8 @@ public class InteractionController : MonoBehaviour
         var interactable = previewInstance.GetComponent<IInteractable>() as MonoBehaviour;
         if (interactable != null) DestroyImmediate(interactable);
 
-        var outline = previewInstance.GetComponent<Outline>();
-        if (outline != null) DestroyImmediate(outline);
+        // var outline = previewInstance.GetComponent<Outline>();
+        // if (outline != null) DestroyImmediate(outline);
 
         foreach (var col in previewInstance.GetComponentsInChildren<Collider>())
             DestroyImmediate(col);
@@ -256,8 +245,22 @@ public class InteractionController : MonoBehaviour
 
         previewInstance.SetActive(true);
 
+        Ray heldRay = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        if (Physics.Raycast(heldRay, out RaycastHit heldHit, interactRange))
+        {
+            var essence = heldObject.GetComponent<EssenceBottle>();
+            var perfume = heldHit.collider.GetComponent<PerfumeBottle>();
+
+            if (essence != null && perfume != null) // tutulan obje esanssa ve parfume raycast hit ediyorsa 
+            {
+                previewInstance.SetActive(false);
+                isDropValid = false;
+                return;
+            }
+        }
+
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, placeableMask))
+        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, placeableMask)) // PLACEABLE RAYCAST
         {
             float angle = Vector3.Angle(hit.normal, Vector3.up);
             if (angle > 25f)
@@ -278,7 +281,7 @@ public class InteractionController : MonoBehaviour
                 overlapCheckMask
             );
 
-            if (!isOverlapping)
+            if (!isOverlapping) // carpisma yoksa 
             {
                 foreach (var rend in previewRenderers)
                     rend.material = validMaterial;
@@ -287,26 +290,36 @@ public class InteractionController : MonoBehaviour
                 lastValidDropNormal = hit.normal;
                 isDropValid = true;
             }
-            else
+            else // carpisma varsa
             {
                 foreach (var rend in previewRenderers)
                     rend.material = invalidMaterial;
                 isDropValid = false;
             }
         }
-        else
+        else // placeable yerde hit yoksa
         {
             previewInstance.SetActive(false);
             isDropValid = false;
         }
     }
-
-    void DisableLastOutline()
+    
+    void HandleOutline(Collider hitCollider)
     {
-        if (lastOutline != null)
+        Outline hitOutline = null;
+        if (hitCollider != null)
+            hitOutline = hitCollider.GetComponent<Outline>();
+
+        if (currentOutline != hitOutline)
         {
-            lastOutline.enabled = false;
-            lastOutline = null;
+            if (currentOutline != null)
+                currentOutline.enabled = false;
+
+            if (hitOutline != null)
+                hitOutline.enabled = true;
+
+            currentOutline = hitOutline;
         }
     }
+
 }
