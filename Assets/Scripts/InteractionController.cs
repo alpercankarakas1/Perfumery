@@ -129,6 +129,13 @@ public class InteractionController : MonoBehaviour
 
                 HandleOutline(hit.collider);
             }
+            else if (interactable != null && heldObject.GetComponent<EssenceBottle>() != null)
+            {
+                interactTextUI.text = "esans doldur";
+                interactTextUI.enabled = true;
+
+                HandleOutline(hit.collider);
+            }
             else // interact edilecek nesneye bakilmiyorsa
             {
                 interactTextUI.enabled = false;

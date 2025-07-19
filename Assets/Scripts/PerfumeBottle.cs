@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Data.Common;
 using UnityEngine;
 
@@ -8,12 +9,33 @@ public class PerfumeBottle : MonoBehaviour, IInteractable
 {
     public float capacity = 100f; // mL
     public float currentAmount = 0f;
-
     public Renderer liquidRenderer;
-    
     private Coroutine pourRoutine;
+    private Dictionary<EssenceDataSO, float> essenceContents = new();
+    private Color mixedColor = Color.clear;
 
-    public string GetInteractText() => "[E] Parfum sise al";
+    public string GetInteractText()
+    {
+        string text = $"[E] Parfum sisesini al\n";
+        text += $"Doluluk: {currentAmount:F1} / {capacity} mL\n";
+
+        if (essenceContents.Count == 0)
+        {
+            text += "(Henüz içerik eklenmedi)";
+        }
+        else
+        {
+            text += "İçerik:\n";
+            foreach (var kvp in essenceContents)
+            {
+                float percent = (kvp.Value / currentAmount) * 100f;
+                text += $"- {kvp.Key.essenceName}: {kvp.Value:F1} mL ({percent:F0}%)\n";
+            }
+        }
+
+        return text.TrimEnd();
+    }
+
 
     public void Interact()
     {
@@ -50,18 +72,21 @@ public class PerfumeBottle : MonoBehaviour, IInteractable
             essence.currentAmount -= pourAmount;
             currentAmount += pourAmount;
 
+            if (essenceContents.ContainsKey(essence.data))
+                essenceContents[essence.data] += pourAmount;
+            else
+                essenceContents[essence.data] = pourAmount;
 
-            #region renk degisim test 
+            UpdateLiquidVisuals();
 
-            if (currentAmount >= 10f)
+            #region DEBUG
+            foreach (var kvp in essenceContents) 
             {
-                liquidRenderer.material.SetColor("_SideColor", essence.data.essenceSideColor);
-                liquidRenderer.material.SetColor("_TopColor", essence.data.essenceTopColor);
+                Debug.Log($"→ İçerik: {kvp.Key.essenceName} - {kvp.Value:F1} mL");
             }
 
-            #endregion
-
             Debug.Log($"→ Dökülüyor: {pourAmount:F2} mL | Parfüm Şişesi: {currentAmount:F1} / {capacity} mL | Esans Kaldı: {essence.currentAmount:F1} mL");
+            #endregion
 
             yield return null;
         }
@@ -71,10 +96,31 @@ public class PerfumeBottle : MonoBehaviour, IInteractable
 
     void UpdateLiquidVisuals()
     {
+        if (essenceContents == null || essenceContents.Count == 0) return;
 
-        //shader
+        float totalAmount = 0f;
+        foreach (var kvp in essenceContents)
+            totalAmount += kvp.Value;
 
-        //liquidRenderer.material.SetColor("_SideColor", color);
-        //liquidRenderer.material.SetColor("_TopColor", color);
+        if (totalAmount <= 0f) return;
+
+        Color mixedSide = Color.black;
+        Color mixedTop = Color.black;
+
+        foreach (var kvp in essenceContents)
+        {
+            float ratio = kvp.Value / totalAmount;
+            mixedSide += kvp.Key.essenceSideColor * ratio;
+            mixedTop += kvp.Key.essenceTopColor * ratio;
+        }
+
+
+        // Ekstra beyazlik
+        mixedSide = Color.Lerp(mixedSide, Color.white, 0.1f);
+        mixedTop = Color.Lerp(mixedTop, Color.white, 0.1f);
+
+        // Shadera gonder
+        liquidRenderer.material.SetColor("_SideColor", mixedSide);
+        liquidRenderer.material.SetColor("_TopColor", mixedTop);
     }
 }
