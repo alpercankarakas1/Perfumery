@@ -391,6 +391,10 @@ MonoBehaviour:
   currentAmount: 100
   capacity: 100
   pourSpeed: 2
+  dropperCap: {fileID: 6889219762732474774}
+  dropperHoldPose: {fileID: 0}
+  dropperCapacity: 10
+  currentDropperAmount: 0
   liquidRenderer: {fileID: 6285022493727325998}
 --- !u!114 &2146017968751742856
 MonoBehaviour:

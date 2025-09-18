@@ -14,6 +14,12 @@ public class PerfumeBottle : MonoBehaviour, IInteractable
     private Dictionary<EssenceDataSO, float> essenceContents = new();
     private Color mixedColor = Color.clear;
 
+    //drip mode
+
+    public Transform dripCameraPoint;
+    public Transform essencePlacePoint;
+    public Transform dropperHoldPoint;
+
     public string GetInteractText()
     {
         string text = $"[E] Parfum sisesini al\n";
@@ -43,6 +49,26 @@ public class PerfumeBottle : MonoBehaviour, IInteractable
         interaction.PickUpObject(gameObject);
     }
 
+    //public void StartDripInteraction(EssenceBottle essence)
+    //{
+    //    var dripController = FindObjectOfType<DripModeController>();
+    //    dripController.EnterDripMode(essence, this);
+    //}
+
+    public void AddEssence(EssenceDataSO data, float amount)
+    {
+        if (currentAmount + amount > capacity) return;
+
+        currentAmount += amount;
+
+        if (essenceContents.ContainsKey(data))
+            essenceContents[data] += amount;
+        else
+            essenceContents[data] = amount;
+
+        UpdateLiquidVisuals();
+    }
+
     public void StartPouring(EssenceBottle essence)
     {
         if (pourRoutine != null) return;
@@ -58,7 +84,7 @@ public class PerfumeBottle : MonoBehaviour, IInteractable
             pourRoutine = null;
         }
     }
-
+    
     private IEnumerator PourFromEssence(EssenceBottle essence)
     {
         while (essence != null && !essence.IsEmpty && currentAmount < capacity)
@@ -80,7 +106,7 @@ public class PerfumeBottle : MonoBehaviour, IInteractable
             UpdateLiquidVisuals();
 
             #region DEBUG
-            foreach (var kvp in essenceContents) 
+            foreach (var kvp in essenceContents)
             {
                 Debug.Log($"→ İçerik: {kvp.Key.essenceName} - {kvp.Value:F1} mL");
             }

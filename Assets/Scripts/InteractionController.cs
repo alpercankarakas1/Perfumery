@@ -3,6 +3,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using DG.Tweening;
+using Unity.VisualScripting;
+using UnityEditor;
 
 public class InteractionController : MonoBehaviour
 {
@@ -80,6 +83,7 @@ public class InteractionController : MonoBehaviour
         }
     }
 
+
     private void OnInteractPerformed(InputAction.CallbackContext context)
     {
         if (heldObject != null && isDropValid)
@@ -100,8 +104,6 @@ public class InteractionController : MonoBehaviour
         }
     }
 
-
-
     private void OnPrimaryActionPerformed(InputAction.CallbackContext context)
     {
         if (currentInteractable is PerfumeBottle perfume)
@@ -109,10 +111,12 @@ public class InteractionController : MonoBehaviour
             var essence = heldObject?.GetComponent<EssenceBottle>();
             if (essence != null)
             {
-                perfume.StartPouring(essence);
+                DripModeController.Instance.EnterDripMode(heldObject.GetComponent<EssenceBottle>(), perfume);
+                return;
             }
         }
     }
+
 
     void HandleRaycast()
     {

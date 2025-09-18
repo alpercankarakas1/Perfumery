@@ -10,6 +10,12 @@ public class EssenceBottle : MonoBehaviour, IInteractable
     public float capacity = 100f;
     public float pourSpeed = 1f; // mL/sn
 
+    public Transform dropperCap;
+    public Transform dropperHoldPose;
+    public float dropperCapacity = 10f;
+    public float currentDropperAmount = 0f;
+
+
     public Renderer liquidRenderer;
 
     public bool IsEmpty => currentAmount <= 0f;
@@ -46,6 +52,13 @@ public class EssenceBottle : MonoBehaviour, IInteractable
 
 
         liquidRenderer.material.SetColor("_SideColor", data.essenceSideColor);
-        liquidRenderer.material.SetColor("_TopColor",data.essenceSideColor);
+        liquidRenderer.material.SetColor("_TopColor", data.essenceSideColor);
+    }
+    
+    public void RefillDropper()
+    {
+        float refillAmount = Mathf.Min(dropperCapacity, currentAmount);
+        currentDropperAmount = refillAmount;
+        currentAmount -= refillAmount;
     }
 }
